@@ -1,0 +1,92 @@
+# Codemagic: build the native SwiftUI iOS app in ios/ and upload it to TestFlight.
+#
+# Works on a personal Codemagic account: no Team integration is used. Credentials come from
+# an environment variable group named "Epubswift" (see `groups:` below).
+#
+# One-time setup:
+#   1. Register the bundle id cc.epubswift.app in your Apple Developer account and create the
+#      app in App Store Connect with that bundle id.
+#   2. Put the numeric Apple ID of that app (App Store Connect > App Information) in APP_STORE_APPLE_ID.
+#   3. In the Codemagic app: Environment variables > create the group below with the four variables
+#      (or reuse the values of your other apps' group, the Apple API key works for all apps).
+#   4. The build creates the distribution certificate and profile from the API key.
+workflows:
+  ios-testflight:
+    name: iOS TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      xcode: latest
+      groups:
+        # Variables in the group (all Secret):
+        #   APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER,
+        #   APP_STORE_CONNECT_PRIVATE_KEY (contents of the .p8),
+        #   CERTIFICATE_PRIVATE_KEY_B64 (the RSA key as ONE line of base64).
+        - Epubswift
+      vars:
+        BUNDLE_ID: "cc.epubswift.app"
+        XCODE_SCHEME: "EPUBSwift"
+        # Replace with the numeric Apple ID of the app in App Store Connect (keep the quotes).
+        APP_STORE_APPLE_ID: "0000000000"
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+      cancel_previous_builds: true
+    scripts:
+      - name: Show which commit is being built
+        script: |
+          echo "Building commit: $(git -C "$CM_BUILD_DIR" log -1 --oneline)"
+      - name: Install XcodeGen
+        script: brew install xcodegen
+      - name: Generate Xcode project
+        script: |
+          cd "$CM_BUILD_DIR/ios"
+          xcodegen generate
+      - name: Fetch signing files from App Store Connect
+        script: |
+          set -e
+          # CERTIFICATE_PRIVATE_KEY_B64 is the certificate key as one line of base64, which survives
+          # copy/paste (multi-line values can lose their line breaks in the web form).
+          echo "$CERTIFICATE_PRIVATE_KEY_B64" | tr -d ' \r\n' | base64 --decode > /tmp/certificate_key.pem
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --certificate-key @file:/tmp/certificate_key.pem \
+            --create
+          keychain add-certificates
+      - name: Set up code signing on the Xcode project
+        script: |
+          cd "$CM_BUILD_DIR/ios"
+          xcode-project use-profiles --project EPUBSwift.xcodeproj
+      - name: Increment build number
+        script: |
+          cd "$CM_BUILD_DIR/ios"
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          LATEST=${LATEST:-0}
+          agvtool new-version -all $((LATEST + 1))
+      - name: Build ipa for distribution
+        script: |
+          cd "$CM_BUILD_DIR/ios"
+          if ! xcode-project build-ipa \
+            --project EPUBSwift.xcodeproj \
+            --scheme "$XCODE_SCHEME"; then
+            echo "=================== COMPILER ERRORS ==================="
+            grep -h "error:" /tmp/xcodebuild_logs/*.log 2>/dev/null | sed 's#/Users/builder/clone/##' | sort -u | head -40
+            echo "======================================================="
+            exit 1
+          fi
+    artifacts:
+      - ios/build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+        submit_to_app_store: false
