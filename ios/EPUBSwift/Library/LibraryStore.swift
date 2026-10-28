@@ -52,7 +52,12 @@ final class LibraryStore: ObservableObject {
     }
 
     var booksDir: URL { root.appendingPathComponent("Books", isDirectory: true) }
-    var coversDir: URL { root.appendingPathComponent("Covers", isDirectory: true) }
+    var coversDir: URL { Self.coversDirectory }
+
+    /// Not tied to the main actor so the cover cache can use it from any context.
+    nonisolated static var coversDirectory: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("Covers", isDirectory: true)
+    }
     private var indexURL: URL { root.appendingPathComponent("library.json") }
 
     func fileURL(_ book: BookRecord) -> URL { booksDir.appendingPathComponent(book.fileName) }
@@ -181,7 +186,7 @@ enum CoverCache {
 
     static func image(for book: BookRecord) -> UIImage? {
         if let c = cache.object(forKey: book.id as NSString) { return c }
-        let url = LibraryStore.shared.coversDir.appendingPathComponent(book.id + ".jpg")
+        let url = LibraryStore.coversDirectory.appendingPathComponent(book.id + ".jpg")
         guard let image = UIImage(contentsOfFile: url.path) else { return nil }
         cache.setObject(image, forKey: book.id as NSString)
         return image
