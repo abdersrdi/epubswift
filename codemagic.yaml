@@ -147,8 +147,11 @@ workflows:
             xcrun simctl shutdown "$UDID" || true
           }
 
+          echo "Available simulators:"; xcrun simctl list devices available | grep -iE "iPhone|iPad" | sed 's/^ *//' | head -60
           shoot "iPhone .* Pro Max" screenshots/iphone
           shoot "iPad Pro 13" screenshots/ipad
+          # Foldable iPhone, if this Xcode has a simulator for it (the name is matched loosely).
+          shoot "iPhone .*(Fold|Duo|Flip)" screenshots/foldable
           ls -la "$CM_BUILD_DIR"/screenshots/*
     artifacts:
       - screenshots/**/*.png
