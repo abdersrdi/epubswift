@@ -2,8 +2,8 @@ import SwiftUI
 import StoreKit
 
 enum AppLinks {
-    static let privacy = URL(string: "https://epubswift.cc/privacy")!
-    static let terms = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
+    static let privacy = URL(string: "https://pdfswift.cc/privacy")!
+    static let terms = URL(string: "https://pdfswift.cc/terms")!
     static let manageSubscriptions = URL(string: "https://apps.apple.com/account/subscriptions")!
 }
 

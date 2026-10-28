@@ -50,13 +50,13 @@ Books and tools stay on your device. The free version shows ads (Google AdMob); 
 
 Monthly and yearly subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Payment is charged to your Apple ID account at confirmation of purchase. You can manage or cancel subscriptions in your Apple ID account settings. The lifetime unlock is a one-time purchase.
 
-Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-Privacy Policy: (your privacy policy URL)
+Terms of Use: https://pdfswift.cc/terms
+Privacy Policy: https://pdfswift.cc/privacy
 ```
 
 **What's New**: `First release of EPUBSwift for iPhone and iPad.`
 
-**Support URL**: your website or support page
+**Support URL**: `https://pdfswift.cc/contact`
 **Copyright**: `2026 EPUBSwift` (use your name or company)
 
 ---
@@ -67,7 +67,7 @@ Privacy Policy: (your privacy policy URL)
 |---|---|
 | Primary category | Books |
 | Secondary category | Productivity |
-| Privacy Policy URL | your page (must say ads use an advertising ID) |
+| Privacy Policy URL | `https://pdfswift.cc/privacy` (must say the mobile apps use an advertising ID for ads) |
 | Age rating | 4+ (answer None / No to every content question) |
 
 ---
