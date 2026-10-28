@@ -356,6 +356,8 @@ struct ExtractToolView: View {
                 }
             }
             .padding(16)
+            .frame(maxWidth: 680)
+            .frame(maxWidth: .infinity)
         }
         .navigationTitle(Tool.extract.title)
         .navigationBarTitleDisplayMode(.inline)

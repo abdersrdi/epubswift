@@ -91,6 +91,8 @@ struct PaywallView: View {
                     }
                 }
                 .padding(16)
+                .frame(maxWidth: 640)
+                .frame(maxWidth: .infinity)
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)

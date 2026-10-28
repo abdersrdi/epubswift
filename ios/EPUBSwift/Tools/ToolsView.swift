@@ -30,6 +30,9 @@ struct ToolsView: View {
                 Section(L("Convert")) { rows(Tool.convert) }
                 Section(L("Edit and fix")) { rows(Tool.editing) }
             }
+            .frame(maxWidth: 760)
+            .frame(maxWidth: .infinity)
+            .background(Color(.systemGroupedBackground))
             .navigationTitle(L("Tools"))
             .navigationDestination(for: Tool.self) { ToolDestination(tool: $0) }
             .safeAreaInset(edge: .bottom) { BannerBar() }

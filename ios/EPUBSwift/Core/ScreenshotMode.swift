@@ -55,6 +55,6 @@ enum ScreenshotMode {
     static var sampleFiles: [PickedFile] {
         guard isActive, let book = LibraryStore.shared.books.first(where: { $0.title.hasPrefix("Alice") }) ?? LibraryStore.shared.books.first
         else { return [] }
-        return [PickedFile(url: LibraryStore.shared.fileURL(book))]
+        return [PickedFile(url: LibraryStore.shared.fileURL(book), displayName: OutFiles.safe(book.title) + ".epub")]
     }
 }

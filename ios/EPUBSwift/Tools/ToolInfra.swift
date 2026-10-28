@@ -73,8 +73,13 @@ enum Tool: String, CaseIterable, Identifiable, Hashable {
 struct PickedFile: Identifiable, Hashable {
     let id = UUID()
     var url: URL
-    var name: String { url.lastPathComponent }
-    var baseName: String { url.deletingPathExtension().lastPathComponent }
+    /// Shown instead of the stored file name (library books are stored under a random id).
+    var displayName: String? = nil
+    var name: String { displayName ?? url.lastPathComponent }
+    var baseName: String {
+        if let displayName { return (displayName as NSString).deletingPathExtension }
+        return url.deletingPathExtension().lastPathComponent
+    }
 }
 
 enum OutFiles {
@@ -201,7 +206,7 @@ struct SourcePicker: View {
         .sheet(isPresented: $showLibrary) {
             LibraryPickSheet(multiple: multiple) { books in
                 for b in books where !files.contains(where: { $0.url == library.fileURL(b) }) {
-                    files.append(PickedFile(url: library.fileURL(b)))
+                    files.append(PickedFile(url: library.fileURL(b), displayName: OutFiles.safe(b.title) + ".epub"))
                 }
                 if !multiple, files.count > 1 { files = [files.last!] }
             }
@@ -319,6 +324,8 @@ struct ToolScaffold<Options: View>: View {
                 if case .done = runner.state, let out = runner.output { ResultCard(output: out) }
             }
             .padding(16)
+            .frame(maxWidth: 680)
+            .frame(maxWidth: .infinity)
         }
         .navigationTitle(tool.title)
         .navigationBarTitleDisplayMode(.inline)

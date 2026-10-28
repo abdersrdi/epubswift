@@ -63,7 +63,12 @@ struct LibraryView: View {
         }
     }
 
-    private let columns = [GridItem(.adaptive(minimum: 110, maximum: 160), spacing: 14, alignment: .top)]
+    @Environment(\.horizontalSizeClass) private var sizeClass
+
+    private var columns: [GridItem] {
+        let wide = sizeClass == .regular
+        return [GridItem(.adaptive(minimum: wide ? 170 : 110, maximum: wide ? 240 : 160), spacing: wide ? 22 : 14, alignment: .top)]
+    }
 
     var body: some View {
         NavigationStack {

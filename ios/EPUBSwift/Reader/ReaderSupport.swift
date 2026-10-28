@@ -44,7 +44,7 @@ struct ReaderStyle: Equatable {
         var s = "html{-webkit-text-size-adjust:100%;background:\(Self.hex(theme.background)) !important;}"
         s += "body{background:\(Self.hex(theme.background)) !important;color:\(Self.hex(theme.text)) !important;"
         s += "font-family:\(family) !important;font-size:\(Int(fontSize))px !important;line-height:\(lineHeight) !important;"
-        s += "margin:0 !important;padding:16px \(Int(margin))px 40px \(Int(margin))px !important;"
+        s += "margin:0 auto !important;max-width:40em;padding:16px \(Int(margin))px 40px \(Int(margin))px !important;"
         s += "word-wrap:break-word;overflow-wrap:break-word;"
         if rtl { s += "direction:rtl;" }
         s += "}"
