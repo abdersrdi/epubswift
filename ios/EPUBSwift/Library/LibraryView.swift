@@ -43,7 +43,8 @@ struct LibraryView: View {
     @AppStorage("library_sort") private var sortRaw = LibrarySort.recent.rawValue
     @State private var search = ""
     @State private var picking = false
-    @State private var openBook: BookRecord?
+    @State private var openBook: BookRecord? = ScreenshotMode.opensReader
+        ? (LibraryStore.shared.books.first(where: { $0.title.hasPrefix("Alice") }) ?? LibraryStore.shared.books.first) : nil
     @State private var deleting: BookRecord?
 
     private var sort: LibrarySort { LibrarySort(rawValue: sortRaw) ?? .recent }

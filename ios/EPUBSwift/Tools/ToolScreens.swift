@@ -10,7 +10,7 @@ private func epubName(_ file: PickedFile, suffix: String, ext: String = "epub") 
 
 struct MetadataToolView: View {
     @StateObject private var runner = ToolRunner()
-    @State private var files: [PickedFile] = []
+    @State private var files: [PickedFile] = ScreenshotMode.sampleFiles
     @State private var fields: MetadataFields?
     @State private var loadError: String?
 
@@ -35,6 +35,7 @@ struct MetadataToolView: View {
                          .frame(height: fields == nil ? 0 : nil)
                      })
             .onChange(of: files) { _, newFiles in load(newFiles.first) }
+            .task { if ScreenshotMode.isActive { load(files.first) } }
     }
 
     private func field(_ title: String, _ path: WritableKeyPath<MetadataFields, String>, multiline: Bool = false) -> some View {
@@ -147,7 +148,7 @@ struct CoverToolView: View {
 
 struct ValidateToolView: View {
     @StateObject private var runner = ToolRunner()
-    @State private var files: [PickedFile] = []
+    @State private var files: [PickedFile] = ScreenshotMode.sampleFiles
 
     var body: some View {
         ToolScaffold(tool: .validate, runner: runner, runTitle: L("Check the book"), canRun: !files.isEmpty,
@@ -155,6 +156,7 @@ struct ValidateToolView: View {
                      source: { SourcePicker(files: $files) },
                      options: { EmptyView() })
             .onChange(of: files) { _, _ in runner.reset() }
+            .task { if ScreenshotMode.isActive { run() } }
     }
 
     private func run() {
@@ -420,7 +422,7 @@ struct ChapterTextSheet: View {
 
 struct PdfToolView: View {
     @StateObject private var runner = ToolRunner()
-    @State private var files: [PickedFile] = []
+    @State private var files: [PickedFile] = ScreenshotMode.sampleFiles
     @State private var letter = false
     @State private var margin = 54.0
     @State private var fontSize = 12.0

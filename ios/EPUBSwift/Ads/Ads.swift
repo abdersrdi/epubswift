@@ -281,7 +281,7 @@ struct BannerBar: View {
     @ObservedObject private var premium = Premium.shared
 
     var body: some View {
-        if !premium.isPremium {
+        if !premium.isPremium && !ScreenshotMode.isActive {
             BannerAdView()
                 .frame(width: 320, height: 50)
                 .frame(maxWidth: .infinity)

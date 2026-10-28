@@ -88,9 +88,9 @@ Subscription group: `EPUBSwift Premium`
 
 | Product ID | Type | Duration | Price | Display name | Description |
 |---|---|---|---|---|---|
-| `epubswift_premium_yearly` | Auto-renewable | 1 year | 14.99 | Premium Yearly | All tools, no ads. |
-| `epubswift_premium_monthly` | Auto-renewable | 1 month | 1.99 | Premium Monthly | All tools, no ads. |
-| `epubswift_premium_lifetime` | Non-consumable | none | 24.99 | Premium Lifetime | All tools, no ads. One time. |
+| `epubswift_premium_yearly` | Auto-renewable | 1 year | 9.99 | Premium Yearly | All tools, no ads. |
+| `epubswift_premium_monthly` | Auto-renewable | 1 month | 0.99 | Premium Monthly | All tools, no ads. |
+| `epubswift_premium_lifetime` | Non-consumable | none | 14.99 | Premium Lifetime | All tools, no ads. One time. |
 
 Each needs a localization and a review screenshot of the Premium screen. Rank yearly above monthly in the group.
 

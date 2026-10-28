@@ -6,7 +6,12 @@ struct EPUBSwiftApp: App {
 
     init() {
         OutFiles.clear()
-        StoreManager.shared.start()
+        if ScreenshotMode.isActive {
+            ScreenshotMode.prepareDefaults()
+            Premium.shared.set(ScreenshotMode.premium)
+        } else {
+            StoreManager.shared.start()
+        }
     }
 
     var body: some Scene {
@@ -20,24 +25,34 @@ struct EPUBSwiftApp: App {
 
 struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @State private var tab = ScreenshotMode.tab
 
     var body: some View {
-        TabView {
-            LibraryView()
-                .tabItem { Label(L("Library"), systemImage: "books.vertical") }
-            ToolsView()
-                .tabItem { Label(L("Tools"), systemImage: "wrench.and.screwdriver") }
-            SettingsView()
-                .tabItem { Label(L("Settings"), systemImage: "gearshape") }
+        Group {
+            if ScreenshotMode.showsPaywall {
+                PaywallView()
+            } else {
+                TabView(selection: $tab) {
+                    LibraryView()
+                        .tabItem { Label(L("Library"), systemImage: "books.vertical") }
+                        .tag(0)
+                    ToolsView()
+                        .tabItem { Label(L("Tools"), systemImage: "wrench.and.screwdriver") }
+                        .tag(1)
+                    SettingsView()
+                        .tabItem { Label(L("Settings"), systemImage: "gearshape") }
+                        .tag(2)
+                }
+            }
         }
         .onChange(of: scenePhase) { _, phase in
             // The tracking prompt only works once the app is active, so ads start from here.
-            if phase == .active {
+            if phase == .active && !ScreenshotMode.isActive {
                 AdManager.shared.start()
                 Task { await StoreManager.shared.refreshEntitlements() }
             }
         }
-        .onAppear { AdManager.shared.start() }
+        .onAppear { if !ScreenshotMode.isActive { AdManager.shared.start() } }
         .onOpenURL { url in
             guard url.isFileURL else { return }
             Task { await LibraryStore.shared.importFiles([url]) }

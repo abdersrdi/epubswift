@@ -48,6 +48,7 @@ final class LibraryStore: ObservableObject {
         try? fm.createDirectory(at: booksDir, withIntermediateDirectories: true)
         try? fm.createDirectory(at: coversDir, withIntermediateDirectories: true)
         load()
+        if ScreenshotMode.isActive && books.isEmpty { installSamples() }
     }
 
     var booksDir: URL { root.appendingPathComponent("Books", isDirectory: true) }
@@ -68,6 +69,27 @@ final class LibraryStore: ObservableObject {
     }
 
     func book(id: String) -> BookRecord? { books.first { $0.id == id } }
+
+    /// Screenshot mode only: copies the sample books bundled by the screenshots workflow into the library.
+    private func installSamples() {
+        let urls = (Bundle.main.urls(forResourcesWithExtension: "epub", subdirectory: nil) ?? [])
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+        let progress: [Double] = [0.42, 0.0, 0.78, 0.0, 0.15, 0.0]
+        for (i, url) in urls.enumerated() {
+            let id = UUID().uuidString.lowercased()
+            let dest = booksDir.appendingPathComponent(id + ".epub")
+            guard (try? fm.copyItem(at: url, to: dest)) != nil, let pkg = try? EpubPackage(url: dest) else { continue }
+            if let raw = pkg.coverData(), let image = UIImage(data: raw),
+               let jpeg = EpubEdits.downscale(image, maxSide: 480).jpegData(compressionQuality: 0.85) {
+                try? jpeg.write(to: coversDir.appendingPathComponent(id + ".jpg"))
+            }
+            var record = BookRecord(id: id, title: pkg.displayTitle, authors: pkg.authors.joined(separator: ", "),
+                                    addedAt: Date().addingTimeInterval(-Double(i) * 60), rtl: pkg.rtl)
+            record.progress = i < progress.count ? progress[i] : 0
+            books.append(record)
+        }
+        save()
+    }
 
     // MARK: Import
 

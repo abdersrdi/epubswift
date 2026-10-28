@@ -3,9 +3,10 @@ import SwiftUI
 struct ToolsView: View {
     @ObservedObject private var premium = Premium.shared
     @State private var showPaywall = false
+    @State private var path: [Tool] = ScreenshotMode.tool.map { [$0] } ?? []
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             List {
                 if !premium.isPremium {
                     Section {

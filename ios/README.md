@@ -6,7 +6,7 @@ Native SwiftUI port of the Android EPUB reader and toolbox.
   progress. Arabic and right-to-left books are supported. Works offline.
 - **Tools need Premium** (all run on the device): EPUB to PDF, PDF to EPUB, EPUB to TXT, EPUB to Markdown,
   Extract text, Metadata editor, Cover editor, Validator, Repair, Merge.
-- **Premium** removes every ad and unlocks the tools. Plans: monthly (1.99), yearly (14.99) and lifetime (24.99),
+- **Premium** removes every ad and unlocks the tools. Plans: monthly (0.99), yearly (9.99) and lifetime (14.99),
   StoreKit 2. Prices are set in App Store Connect, the app shows what the store returns.
 - **Ads** (free users): banner under the library, reader, tools and settings, a native card at the top of the library,
   and an interstitial after every third book is closed (at most once every 3 minutes). Google Mobile Ads via Swift
@@ -22,9 +22,9 @@ Native SwiftUI port of the Android EPUB reader and toolbox.
 
 1. **Bundle id** `cc.epubswift.app`: register it in the Apple Developer portal and create the app in App Store Connect.
 2. **In-app purchases** (App Store Connect), IDs must match `EPUBSwift/Premium/StoreManager.swift`:
-   - subscription group "EPUBSwift Premium": `epubswift_premium_monthly` (1 month, 1.99) and
-     `epubswift_premium_yearly` (1 year, 14.99)
-   - non-consumable: `epubswift_premium_lifetime` (24.99)
+   - subscription group "EPUBSwift Premium": `epubswift_premium_monthly` (1 month, 0.99) and
+     `epubswift_premium_yearly` (1 year, 9.99)
+   - non-consumable: `epubswift_premium_lifetime` (14.99)
 3. **Privacy**: declare third-party advertising data (AdMob) and tracking, matching `PrivacyInfo.xcprivacy`.
    The app asks for App Tracking Transparency at first launch. Set the Privacy Policy URL in `Premium/PaywallView.swift`
    (`AppLinks.privacy`) to your real page.

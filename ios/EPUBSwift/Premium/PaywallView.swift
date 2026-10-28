@@ -36,7 +36,9 @@ struct PaywallView: View {
                     }
                     .card()
 
-                    if store.loading && store.products.isEmpty {
+                    if ScreenshotMode.isActive {
+                        sampleSection
+                    } else if store.loading && store.products.isEmpty {
                         ProgressView().padding()
                     } else if store.products.isEmpty {
                         VStack(spacing: 8) {
@@ -50,7 +52,9 @@ struct PaywallView: View {
                         }
                     }
 
-                    if premium.isPremium {
+                    if ScreenshotMode.isActive {
+                        EmptyView()
+                    } else if premium.isPremium {
                         Label(L("Premium is active. Thank you!"), systemImage: "checkmark.seal.fill")
                             .foregroundStyle(.green).font(.headline)
                     } else {
@@ -94,6 +98,43 @@ struct PaywallView: View {
             .onAppear { if store.products.isEmpty { store.refresh() } }
             .onChange(of: premium.isPremium) { _, active in if active { dismiss() } }
         }
+    }
+
+    /// Screenshot mode only: the three plans with fixed prices (the simulator has no App Store products).
+    private var sampleSection: some View {
+        VStack(spacing: 10) {
+            samplePlan(L("Lifetime"), L("one time"), "$14.99", badge: L("Pay once"), selected: false)
+            samplePlan(L("Yearly"), L("per year"), "$9.99", badge: L("Save 16%"), selected: true)
+            samplePlan(L("Monthly"), L("per month"), "$0.99", badge: nil, selected: false)
+            Text(L("Subscribe, $9.99 per year"))
+                .font(.headline)
+                .frame(maxWidth: .infinity).padding(.vertical, 15)
+                .background(Palette.gradient, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .foregroundStyle(.white)
+        }
+    }
+
+    private func samplePlan(_ title: String, _ period: String, _ price: String, badge: String?, selected: Bool) -> some View {
+        HStack {
+            Image(systemName: selected ? "largecircle.fill.circle" : "circle")
+                .foregroundStyle(selected ? Palette.indigo : Color.secondary)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(title).font(.headline)
+                    if let badge {
+                        Text(badge).font(.caption2.bold()).padding(.horizontal, 7).padding(.vertical, 2)
+                            .background(Palette.gold, in: Capsule()).foregroundStyle(.black)
+                    }
+                }
+                Text(period).font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Text(price).font(.headline)
+        }
+        .padding(14)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .stroke(selected ? Palette.indigo : Color.clear, lineWidth: 2))
     }
 
     private var buttonTitle: String {
