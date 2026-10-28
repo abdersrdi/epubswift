@@ -26,8 +26,8 @@ workflows:
       vars:
         BUNDLE_ID: "cc.epubswift.app"
         XCODE_SCHEME: "EPUBSwift"
-        # Replace with the numeric Apple ID of the app in App Store Connect (keep the quotes).
-        APP_STORE_APPLE_ID: "0000000000"
+        # Numeric Apple ID of the app in App Store Connect (keep the quotes).
+        APP_STORE_APPLE_ID: "6828076535"
     triggering:
       events:
         - push
