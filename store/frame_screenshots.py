@@ -24,13 +24,10 @@ def banner_score(path):
     return sum(px) / len(px)
 
 def pick(folder, name):
+    """The second capture is taken 6 s after the first, after the one-time simulator notification banner is gone."""
     a = os.path.join(folder, name + ".png")
     b = os.path.join(folder, name + "-b.png")
-    if not os.path.exists(b): return a
-    sa, sb = banner_score(a), banner_score(b)
-    chosen = a if sa <= sb else b
-    print(f"{folder.split('/')[-1]:7} {name:9} first={sa:5.1f} second={sb:5.1f} -> {os.path.basename(chosen)}")
-    return chosen
+    return b if os.path.exists(b) else a
 
 def gradient(w, h):
     base = Image.new("RGB", (w, h), TOP); px = base.load()
