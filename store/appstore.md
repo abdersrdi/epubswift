@@ -6,47 +6,47 @@ Limits are noted next to each field. Do not mention other platforms or stores in
 
 ## 1. Version page: English
 
-**Name** (30): `EPUBSwift: EPUB Reader`
+**Name** (30): `EPUBSwift: Read, Note, Write`
 
-**Subtitle** (30): `Read, convert and fix EPUBs`
+**Subtitle** (30): `Highlight, sketch, make books`
 
 **Promotional text** (170):
-`Read EPUB books for free, with Arabic and right-to-left support. Go Premium to convert, edit, repair and merge books, and to remove ads.`
+`Read, highlight and sketch on your books with Apple Pencil, then write and export your own, in English or Arabic. Everything stays on your device.`
 
 **Keywords** (100, comma separated, no spaces):
-`epub,reader,ebook,book,pdf,converter,txt,markdown,arabic,library,metadata,cover,merge,repair`
+`epub,reader,ebook,notes,highlight,annotate,pencil,sketch,write,author,publish,arabic,rtl,study,docx`
 
 **Description** (4000):
 ```
-EPUBSwift is a clean, fast EPUB reader with a powerful toolbox for your books. Everything runs on your device, so your library stays private.
+EPUBSwift is for people who do more than read: you read, mark up, sketch on your pages, and write books of your own. Everything runs on your device, with no account, so your library and your writing stay private.
 
-READ FOR FREE
+READ AND MARK UP
 • Import EPUB books from the Files app into your own library
-• Comfortable reader: text size, fonts, line and margin spacing, Paper, Sepia and Night themes
-• Table of contents, search inside the book, and automatic reading progress
-• Full Arabic and right-to-left support
-• The library and the reader work offline and are always free
+• Highlight in four colours and add notes to any passage
+• See all your highlights and notes in one list, tap to jump back, and export them as Markdown
+• Draw on a page with Apple Pencil (or a finger): sketches are kept with a picture of the page, so they stay right even if you change the text size
+• Comfortable reader: text size, fonts, spacing, Paper, Sepia and Night themes, contents, search and reading progress
+• Full Arabic and right-to-left support, in the reader and in the books you write
 
-TOOLS (PREMIUM)
-• EPUB to PDF: a paginated PDF with headings, lists and images
-• PDF to EPUB: turn a text PDF into a reflowable book with chapters
-• EPUB to TXT and EPUB to Markdown, with optional image export
-• Extract text by chapter, search it and export a single chapter or the whole book
-• Metadata editor: title, authors, language, publisher, description, identifier
-• Cover editor: replace or add a cover image
-• Validator: check packaging, manifest, spine, navigation and links
-• Repair: fix common structural problems and save a clean copy
-• Merge several EPUB files into one book with a new table of contents
+WRITE YOUR OWN BOOK
+• Create a book on your phone: title, author, language, cover, chapters, headings and pictures
+• Every new line is a new paragraph, so there is nothing to learn
+• Export as EPUB, PDF, TXT or a Word document
+• Five free exports every month; Premium has no limit
 
+BOOK TOOLS (PREMIUM)
+• EPUB to PDF and PDF to EPUB
+• EPUB to TXT and Markdown, extract text by chapter
+• Metadata and cover editors, validator, repair and merge
 Your original files are never changed: every tool saves a new file.
 
 EPUBSWIFT PREMIUM
-• All tools unlocked
+• All book tools unlocked, unlimited book exports with no note at the end
 • No ads anywhere in the app
 • Choose monthly, yearly or a one-time lifetime unlock
 
 PRIVACY
-Books and tools stay on your device. The free version shows ads (Google AdMob); Premium removes them.
+Books, notes, sketches and tools stay on your device. The free version shows ads (Google AdMob) and optional videos you can watch to earn extra exports; Premium removes ads.
 
 Monthly and yearly subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Payment is charged to your Apple ID account at confirmation of purchase. You can manage or cancel subscriptions in your Apple ID account settings. The lifetime unlock is a one-time purchase.
 
@@ -54,7 +54,7 @@ Terms of Use: https://pdfswift.cc/terms
 Privacy Policy: https://pdfswift.cc/privacy
 ```
 
-**What's New**: `First release of EPUBSwift for iPhone and iPad.`
+**What's New**: `Highlights and notes, Apple Pencil sketches on your pages, and a Book Maker that exports EPUB, PDF, TXT and Word.`
 
 **Support URL**: `https://pdfswift.cc/contact`
 **Copyright**: `2026 EPUBSwift` (use your name or company)
