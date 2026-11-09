@@ -1,3 +1,4 @@
+import PencilKit
 import SwiftUI
 
 extension HighlightColor {
@@ -36,7 +37,7 @@ struct NotesSheet: View {
     var body: some View {
         NavigationStack {
             List {
-                if ordered.isEmpty {
+                if ordered.isEmpty && model.sketches.isEmpty {
                     Text(L("No highlights yet. Select text in the book to highlight it or to add a note."))
                         .foregroundStyle(.secondary)
                 }
@@ -60,6 +61,32 @@ struct NotesSheet: View {
                 .onDelete { offsets in
                     let ids = offsets.map { ordered[$0].id }
                     ids.forEach { model.deleteAnnotation($0) }
+                }
+                if !model.sketches.isEmpty {
+                    Section(L("Sketches")) {
+                        ForEach(model.sketches) { sketch in
+                            Button {
+                                isPresented = false
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { model.openSketch(sketch) }
+                            } label: {
+                                HStack(spacing: 12) {
+                                    SketchThumbnail(note: sketch, bookID: model.book.id)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(model.chapterTitle(at: sketch.chapterIndex)).font(.caption).foregroundStyle(.secondary)
+                                        Text(sketch.created.formatted(date: .abbreviated, time: .shortened)).font(.subheadline).foregroundStyle(.primary)
+                                    }
+                                }
+                            }
+                            .contextMenu {
+                                Button { model.goTo(sketch); isPresented = false } label: { Label(L("Go to this page"), systemImage: "arrow.turn.down.right") }
+                                Button(role: .destructive) { model.deleteSketch(sketch.id) } label: { Label(L("Delete"), systemImage: "trash") }
+                            }
+                        }
+                        .onDelete { offsets in
+                            let ids = offsets.map { model.sketches[$0].id }
+                            ids.forEach { model.deleteSketch($0) }
+                        }
+                    }
                 }
             }
             .navigationTitle(L("Notes"))
@@ -115,6 +142,29 @@ struct NoteEditor: View {
                 ToolbarItem(placement: .topBarLeading) { Button(L("Cancel")) { dismiss() } }
                 ToolbarItem(placement: .topBarTrailing) { Button(L("Save")) { onSave(annotation); dismiss() }.bold() }
             }
+        }
+    }
+}
+
+/// A small picture of a sketch: the page with the drawing over it.
+struct SketchThumbnail: View {
+    let note: SketchNote
+    let bookID: String
+    @State private var image: UIImage?
+
+    var body: some View {
+        Group {
+            if let image { Image(uiImage: image).resizable().scaledToFill() }
+            else { Image(systemName: "scribble").foregroundStyle(.secondary) }
+        }
+        .frame(width: 56, height: 72)
+        .background(Color.gray.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .task {
+            let store = SketchStore.shared
+            guard let data = store.backdropData(note.id, book: bookID), let backdrop = UIImage(data: data) else { return }
+            let drawing = store.drawingData(note.id, book: bookID).flatMap { try? PKDrawing(data: $0) } ?? PKDrawing()
+            image = SketchRender.composite(backdrop: backdrop, drawing: drawing)
         }
     }
 }

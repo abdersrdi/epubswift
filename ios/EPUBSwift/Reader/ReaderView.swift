@@ -1,4 +1,6 @@
+import PencilKit
 import SwiftUI
+import WebKit
 
 @MainActor
 final class ReaderModel: ObservableObject {
@@ -19,6 +21,9 @@ final class ReaderModel: ObservableObject {
     @Published var draft: Annotation?
     /// Changes when the page should drop its text selection.
     @Published var clearToken = 0
+    @Published var sketches: [SketchNote] = []
+    @Published var sketchDraft: SketchDraft?
+    weak var web: WKWebView?
     let handler = BookSchemeHandler()
     var restoreFraction = 0.0
 
@@ -78,6 +83,52 @@ final class ReaderModel: ObservableObject {
     func save() {
         guard package != nil else { return }
         LibraryStore.shared.updateProgress(id: book.id, chapter: index, fraction: fraction, overall: overall)
+    }
+
+    // MARK: Sketches (Apple Pencil)
+
+    func loadSketches() { sketches = SketchStore.shared.sketches(for: book.id) }
+
+    /// Takes a picture of the page as it looks now and opens a canvas over it.
+    func beginSketch() {
+        guard let web, !currentPath.isEmpty else { return }
+        let note = SketchNote(chapterIndex: index, chapterPath: currentPath, fraction: fraction)
+        web.takeSnapshot(with: nil) { [weak self] image, _ in
+            guard let image else { return }
+            DispatchQueue.main.async { self?.sketchDraft = SketchDraft(note: note, backdrop: image, drawing: PKDrawing(), isNew: true) }
+        }
+    }
+
+    func openSketch(_ note: SketchNote) {
+        let store = SketchStore.shared
+        guard let backdropData = store.backdropData(note.id, book: book.id), let backdrop = UIImage(data: backdropData) else { return }
+        let drawing = store.drawingData(note.id, book: book.id).flatMap { try? PKDrawing(data: $0) } ?? PKDrawing()
+        sketchDraft = SketchDraft(note: note, backdrop: backdrop, drawing: drawing, isNew: false)
+    }
+
+    func saveSketch(_ draft: SketchDraft) {
+        let store = SketchStore.shared
+        let data = draft.drawing.dataRepresentation()
+        if draft.isNew {
+            guard let jpeg = draft.backdrop.jpegData(compressionQuality: 0.85) else { return }
+            store.add(draft.note, drawing: data, backdrop: jpeg, to: book.id)
+        } else {
+            store.update(draft.note, drawing: data, in: book.id)
+        }
+        loadSketches()
+    }
+
+    func deleteSketch(_ id: UUID) {
+        SketchStore.shared.delete(id: id, from: book.id)
+        loadSketches()
+    }
+
+    /// Opens the chapter of a sketch at the place it was made.
+    func goTo(_ note: SketchNote) {
+        go(to: note.chapterIndex)
+        fraction = note.fraction
+        restoreFraction = note.fraction
+        reloadToken += 1
     }
 
     // MARK: Highlights and notes
@@ -200,7 +251,8 @@ struct ReaderView: View {
                         focusAnnotation: model.focusAnnotation,
                         onFocused: { model.focusAnnotation = nil },
                         onSelection: { model.selection = $0 },
-                        onTapAnnotation: { id in model.editing = model.annotations.first { $0.id == id } })
+                        onTapAnnotation: { id in model.editing = model.annotations.first { $0.id == id } },
+                        onWebReady: { model.web = $0 })
                     if model.selection != nil { selectionBar(theme) }
                     footer(theme)
                 }
@@ -211,6 +263,7 @@ struct ReaderView: View {
         .task {
             await model.load(style: style)
             model.loadAnnotations()
+            model.loadSketches()
             LibraryStore.shared.markOpened(id: model.book.id)
         }
         .onChange(of: style) { _, newStyle in
@@ -228,6 +281,7 @@ struct ReaderView: View {
         .sheet(isPresented: $showToc) { TocSheet(model: model, isPresented: $showToc) }
         .sheet(isPresented: $showSearch) { SearchSheet(model: model, isPresented: $showSearch) }
         .sheet(isPresented: $showNotes) { NotesSheet(model: model, isPresented: $showNotes) }
+        .fullScreenCover(item: $model.sketchDraft) { draft in SketchEditor(draft: draft, onSave: { model.saveSketch($0) }) }
         .sheet(item: $model.draft) { draft in
             NoteEditor(annotation: draft, isNew: true, onSave: { model.save($0) }, onDelete: nil)
                 .presentationDetents([.medium, .large])
@@ -252,6 +306,8 @@ struct ReaderView: View {
                 .frame(maxWidth: .infinity)
             Button { showSearch = true } label: { Image(systemName: "magnifyingglass") }
                 .accessibilityLabel(L("Search"))
+            Button { model.beginSketch() } label: { Image(systemName: "pencil.tip.crop.circle") }
+                .accessibilityLabel(L("Sketch"))
             Button { showNotes = true } label: { Image(systemName: "highlighter") }
                 .accessibilityLabel(L("Notes"))
             Button { showToc = true } label: { Image(systemName: "list.bullet") }

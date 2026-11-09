@@ -135,6 +135,7 @@ struct BookWebView: UIViewRepresentable {
     var onFocused: () -> Void = {}
     var onSelection: (TextSelection?) -> Void = { _ in }
     var onTapAnnotation: (UUID) -> Void = { _ in }
+    var onWebReady: (WKWebView) -> Void = { _ in }
 
     /// The page script lives in its own world, apart from the book's own (switched off) scripts.
     static let world = WKContentWorld.world(name: "mw")
@@ -157,6 +158,7 @@ struct BookWebView: UIViewRepresentable {
                                                                 forMainFrameOnly: true, in: Self.world))
         config.userContentController.add(context.coordinator, contentWorld: Self.world, name: AnnotationScripts.handlerName)
         context.coordinator.web = web
+        onWebReady(web)
         return web
     }
 
