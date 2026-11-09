@@ -1,0 +1,33 @@
+name: CI
+
+# Builds the iOS app on every push to any branch except main (main is built and sent to TestFlight by Codemagic).
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+
+jobs:
+  ios:
+    name: iOS build
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate project
+        run: |
+          brew install xcodegen
+          cd ios
+          xcodegen generate
+      - name: Build (Debug, simulator)
+        run: |
+          cd ios
+          xcodebuild -project EPUBSwift.xcodeproj -scheme EPUBSwift \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -30
+          exit ${PIPESTATUS[0]}
+      - name: Build (Release, simulator)
+        run: |
+          cd ios
+          xcodebuild -project EPUBSwift.xcodeproj -scheme EPUBSwift -configuration Release \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -30
+          exit ${PIPESTATUS[0]}
