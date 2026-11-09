@@ -50,8 +50,8 @@ Books, notes, sketches and tools stay on your device. The free version shows ads
 
 Monthly and yearly subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Payment is charged to your Apple ID account at confirmation of purchase. You can manage or cancel subscriptions in your Apple ID account settings. The lifetime unlock is a one-time purchase.
 
-Terms of Use: https://pdfswift.cc/terms
-Privacy Policy: https://pdfswift.cc/privacy
+Terms of Use: https://pdfswift.cc/epubswift-terms
+Privacy Policy: https://pdfswift.cc/epubswift-privacy
 ```
 
 **What's New**: `Highlights and notes, Apple Pencil sketches on your pages, and a Book Maker that exports EPUB, PDF, TXT and Word.`
@@ -67,7 +67,7 @@ Privacy Policy: https://pdfswift.cc/privacy
 |---|---|
 | Primary category | Books |
 | Secondary category | Productivity |
-| Privacy Policy URL | `https://pdfswift.cc/privacy` (must say the mobile apps use an advertising ID for ads) |
+| Privacy Policy URL | `https://pdfswift.cc/epubswift-privacy` |
 | Age rating | 4+ (answer None / No to every content question) |
 
 ---
