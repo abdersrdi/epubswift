@@ -100,9 +100,11 @@ jobs:
 
       - name: Make the finished App Store listing screenshots
         run: |
-          pip3 install pillow
+          # A virtual environment, because the runner's own Python refuses system-wide installs.
+          python3 -m venv .venv
+          .venv/bin/pip install pillow
           # Gradient background, caption and rounded device frame, in every App Store size. Output is ready to upload.
-          python3 store/frame_screenshots.py out listing
+          .venv/bin/python store/frame_screenshots.py out listing
 
       - uses: actions/upload-artifact@v4
         if: always()
