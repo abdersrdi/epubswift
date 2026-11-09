@@ -102,12 +102,31 @@ Each needs a localization and a review screenshot of the Premium screen. Rank ye
 
 **Notes** (paste):
 ```
-EPUBSwift has no accounts and no sign-in. Add an EPUB book from the Files app (Library tab, plus button) to try the free reader.
+NO ACCOUNT OR SIGN-IN. Everything runs on the device.
 
-- The Library and the reader are free. The Tools tab (convert, edit, repair, merge) requires Premium. Premium also removes ads.
-- All tools run on the device and need no internet connection.
-- Ads are shown with Google AdMob to free users. The app asks for App Tracking Transparency permission at first launch. Declining does not limit any feature.
-- Premium can be bought (monthly, yearly or lifetime) and restored from the Tools tab or Settings.
+WHAT CHANGED SINCE THE 4.3 MESSAGE
+EPUBSwift is now a reading, annotating and book-writing app, not a converter. New in this build: highlights and notes, Apple Pencil sketches on pages, and a Book Maker that exports EPUB, PDF, TXT and Word. Our answers to the nine questions are in our Resolution Center reply.
+
+HOW TO TRY IT (about 3 minutes)
+1. Library tab > plus button: add an EPUB. A public-domain sample ("Alice's Adventures in Wonderland") is attached to this submission. Open it.
+
+2. Highlights and notes: in the reader, press and hold a word and drag to select a sentence. A colour bar appears at the bottom: tap a colour to highlight, or tap "Note" to write a note. Tap a highlight to edit it. The highlighter button (top right) opens the Notes list: tap an item to jump to it; the share button exports everything as Markdown.
+
+3. Sketch: tap the pencil-in-a-circle button (top right of the reader). A canvas opens over a picture of the page with Apple's drawing tools. Apple Pencil is not required: a finger works, and so does the mouse in Simulator. Tap Save, then find the sketch in the Notes list.
+
+4. Create tab: tap the plus button, enter a title, tap a chapter, type a few lines (each new line is a paragraph) and add a picture with the Picture button. Choose a cover on the book screen. Tap the export button (top right): choose EPUB, PDF, TXT or Word, tap Export, then Share. The free plan allows 5 exports a month; each ends with a small "Made with EPUBSwift" note. One rewarded video removes the note from one export; three videos earn one more export. A video plays only after the user taps the button. New ad units can have no fill during review; then the button reads "Video loading..." and nothing else is affected.
+
+5. Premium: the Tools tab (EPUB to PDF, PDF to EPUB, TXT and Markdown export, metadata and cover editors, validate, repair, merge) needs Premium. Open Tools or Settings to see the purchase screen with monthly, yearly and lifetime options (use the App Store sandbox). Restore Purchases is on that screen. Premium removes ads and the export limit.
+
+6. Arabic and right-to-left: in a new book choose Language > Arabic; the exported files keep right-to-left text. The app interface is also available in Arabic.
+
+ADS AND PRIVACY
+Free users see Google AdMob ads (banner, native card, an interstitial after every third book is closed). The app asks for App Tracking Transparency permission at first launch; declining does not limit any feature. Premium has no ads. Books, notes, sketches and exports stay on the device; nothing is uploaded.
+
+THIRD-PARTY CODE
+Only the Google Mobile Ads SDK. EPUB, ZIP, XML, HTML, PDF and Word handling is original code; no reader or editor library is used.
+
+Contact: support@pdfswift.cc
 ```
 
 ---
