@@ -5,7 +5,7 @@ import UIKit
 /// Sample content for the screenshot and screen-recording workflow (debug builds only; never in the App Store build).
 /// A short book to show in the Create tab, and a Pencil drawing for the sketch screen.
 enum ScreenshotSeed {
-    static let sampleBookID = UUID(uuidString: "5C1A0B9E-7D3E-4F10-9A55-0E6B3C2D1A01")!
+    static let sampleBookID = ScreenshotMode.sampleBookID
 
     /// A cover drawn in code, so no artwork is needed.
     static func coverImage() -> UIImage {

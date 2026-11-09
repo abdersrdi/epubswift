@@ -16,6 +16,9 @@ enum ScreenshotMode {
 
     static var isActive: Bool { name != nil }
 
+    /// The sample book the Create-tab screenshots open (made by `ScreenshotSeed`, debug builds only).
+    static let sampleBookID = UUID(uuidString: "5C1A0B9E-7D3E-4F10-9A55-0E6B3C2D1A01")!
+
     /// Tab to show first: 0 Library, 1 Tools, 2 Settings.
     static var tab: Int {
         switch name {
