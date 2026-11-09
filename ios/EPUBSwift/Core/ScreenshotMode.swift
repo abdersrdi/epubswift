@@ -20,12 +20,21 @@ enum ScreenshotMode {
     static var tab: Int {
         switch name {
         case "tools", "pdf", "meta", "validate": return 1
+        case "create", "bookeditor", "export": return 3
         default: return 0
         }
     }
 
     /// Open the first sample book in the reader.
-    static var opensReader: Bool { name == "reader" || name == "readerNight" }
+    static var opensReader: Bool { ["reader", "readerNight", "highlight", "notes", "sketch"].contains(name ?? "") }
+
+    /// The new screens: the notes list, the sketch canvas, the Book Maker's editor and export sheet.
+    static var opensNotes: Bool { name == "notes" }
+    static var opensSketch: Bool { name == "sketch" }
+    static var opensBookEditor: Bool { name == "bookeditor" || name == "export" }
+    static var opensExport: Bool { name == "export" }
+    /// Reader screens that show highlights.
+    static var showsHighlights: Bool { ["highlight", "notes", "sketch"].contains(name ?? "") }
 
     static var showsPaywall: Bool { name == "paywall" }
 
@@ -39,7 +48,7 @@ enum ScreenshotMode {
     }
 
     /// Everything except the Premium screen is shown as a Premium user (tools unlocked, no ads).
-    static var premium: Bool { name != "paywall" }
+    static var premium: Bool { name != "paywall" && name != "export" }
 
     /// Reader look for the screenshots.
     static func prepareDefaults() {
@@ -48,6 +57,9 @@ enum ScreenshotMode {
         d.set(name == "readerNight" ? "night" : "paper", forKey: "reader_theme")
         d.set(21.0, forKey: "reader_font_size")
         d.set("light", forKey: "appearance")
+        #if DEBUG
+        MainActor.assumeIsolated { ScreenshotSeed.seedBook() }
+        #endif
     }
 
     /// The first sample book as a tool input.

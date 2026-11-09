@@ -85,6 +85,50 @@ final class ReaderModel: ObservableObject {
         LibraryStore.shared.updateProgress(id: book.id, chapter: index, fraction: fraction, overall: overall)
     }
 
+    #if DEBUG
+    /// Screenshot workflow only: finds a chapter with real paragraphs, highlights a few of them, and opens the sketch screen when asked.
+    func prepareScreenshot() async {
+        guard ScreenshotMode.showsHighlights, annotations.isEmpty else { return }
+        let finder = """
+        (function(){
+          var ps = [].slice.call(document.querySelectorAll('p')).filter(function(p){ return p.textContent.length > 120; }).slice(0, 3);
+          var out = [];
+          ps.forEach(function(p){
+            var n = p.firstChild; while (n && n.nodeType !== 3) n = n.firstChild;
+            if (!n) return;
+            var len = Math.min(n.data.length, 70);
+            var r = document.createRange(); r.setStart(document.body, 0); r.setEnd(n, 0);
+            var s = r.toString().length;
+            out.push({start: s, end: s + len, text: n.data.substring(0, len)});
+          });
+          return JSON.stringify(out);
+        })()
+        """
+        for _ in 0..<10 {
+            try? await Task.sleep(nanoseconds: 1_800_000_000)
+            guard let web else { continue }
+            let result = try? await web.evaluateJavaScript(finder, in: nil, contentWorld: BookWebView.world)
+            if let text = result as? String, let data = text.data(using: .utf8),
+               let found = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]], !found.isEmpty {
+                let colors: [HighlightColor] = [.yellow, .green, .pink]
+                for (i, item) in found.enumerated() {
+                    guard let s = item["start"] as? Int, let e = item["end"] as? Int, let q = item["text"] as? String else { continue }
+                    var a = Annotation(chapterIndex: index, chapterPath: currentPath, start: s, end: e, quote: q, color: colors[i % 3])
+                    if i == 0 { a.note = "Compare this with the opening of chapter one." }
+                    AnnotationStore.shared.add(a, to: book.id)
+                }
+                loadAnnotations()
+                if ScreenshotMode.opensSketch {
+                    try? await Task.sleep(nanoseconds: 1_500_000_000)
+                    beginSketch()
+                }
+                return
+            }
+            next()                                                       // this chapter has no running text; try the next one
+        }
+    }
+    #endif
+
     // MARK: Sketches (Apple Pencil)
 
     func loadSketches() { sketches = SketchStore.shared.sketches(for: book.id) }
@@ -95,7 +139,11 @@ final class ReaderModel: ObservableObject {
         let note = SketchNote(chapterIndex: index, chapterPath: currentPath, fraction: fraction)
         web.takeSnapshot(with: nil) { [weak self] image, _ in
             guard let image else { return }
-            DispatchQueue.main.async { self?.sketchDraft = SketchDraft(note: note, backdrop: image, drawing: PKDrawing(), isNew: true) }
+            var drawing = PKDrawing()
+            #if DEBUG
+            if ScreenshotMode.opensSketch { drawing = ScreenshotSeed.sampleDrawing(for: image.size) }
+            #endif
+            DispatchQueue.main.async { self?.sketchDraft = SketchDraft(note: note, backdrop: image, drawing: drawing, isNew: true) }
         }
     }
 
@@ -207,7 +255,7 @@ struct ReaderView: View {
     @State private var showToc = false
     @State private var showSettings = false
     @State private var showSearch = false
-    @State private var showNotes = false
+    @State private var showNotes = ScreenshotMode.opensNotes
 
     init(book: BookRecord) {
         _model = StateObject(wrappedValue: ReaderModel(book: book))
@@ -264,6 +312,9 @@ struct ReaderView: View {
             await model.load(style: style)
             model.loadAnnotations()
             model.loadSketches()
+            #if DEBUG
+            if ScreenshotMode.isActive { await model.prepareScreenshot() }
+            #endif
             LibraryStore.shared.markOpened(id: model.book.id)
         }
         .onChange(of: style) { _, newStyle in

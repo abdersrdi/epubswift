@@ -8,7 +8,7 @@ private let bookLanguages: [(code: String, name: String)] = [
 /// The Create tab: the books you are writing. Writing is free; exports have a monthly allowance on the free plan.
 struct BookMakerView: View {
     @ObservedObject private var store = BookStore.shared
-    @State private var path: [UUID] = []
+    @State private var path: [UUID] = ScreenshotMode.opensBookEditor ? [ScreenshotMode.sampleBookID] : []
 
     private var defaultLanguage: String {
         Locale.preferredLanguages.first?.hasPrefix("ar") == true ? "ar" : "en"
@@ -63,7 +63,7 @@ struct BookEditorView: View {
     let bookID: UUID
     @ObservedObject private var store = BookStore.shared
     @State private var book: BookProject
-    @State private var showExport = false
+    @State private var showExport = ScreenshotMode.opensExport
     @State private var coverItem: PhotosPickerItem?
     @State private var problem: String?
 
@@ -313,9 +313,9 @@ struct BookExportSheet: View {
         Button {
             ads.show { earned in if earned { reward() } }
         } label: {
-            Label(ads.isReady ? title : L("Video loading…"), systemImage: "play.rectangle")
+            Label(ads.isReady || ScreenshotMode.isActive ? title : L("Video loading…"), systemImage: "play.rectangle")
         }
-        .disabled(!ads.isReady)
+        .disabled(!ads.isReady && !ScreenshotMode.isActive)
     }
 
     private func run() async {
