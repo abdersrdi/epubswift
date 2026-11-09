@@ -57,6 +57,7 @@ struct NotesSheet: View {
                             }
                         }
                     }
+                    .buttonStyle(.plain)
                 }
                 .onDelete { offsets in
                     let ids = offsets.map { ordered[$0].id }
@@ -77,6 +78,7 @@ struct NotesSheet: View {
                                     }
                                 }
                             }
+                            .buttonStyle(.plain)
                             .contextMenu {
                                 Button { model.goTo(sketch); isPresented = false } label: { Label(L("Go to this page"), systemImage: "arrow.turn.down.right") }
                                 Button(role: .destructive) { model.deleteSketch(sketch.id) } label: { Label(L("Delete"), systemImage: "trash") }

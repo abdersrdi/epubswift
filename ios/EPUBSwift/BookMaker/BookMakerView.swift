@@ -30,10 +30,19 @@ struct BookMakerView: View {
                 }
                 ForEach(store.books) { book in
                     NavigationLink(value: book.id) {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(book.displayTitle).font(.headline).lineLimit(1)
-                            Text(String(format: L("%d chapters, %d words"), book.chapters.count, book.wordCount))
-                                .font(.caption).foregroundStyle(.secondary)
+                        HStack(spacing: 12) {
+                            if let id = book.coverImageID, let image = store.thumbnail(id, book: book.id) {
+                                Image(uiImage: image).resizable().scaledToFill().frame(width: 44, height: 62)
+                                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                            } else {
+                                RoundedRectangle(cornerRadius: 4).fill(Color.gray.opacity(0.15)).frame(width: 44, height: 62)
+                                    .overlay(Image(systemName: "book.closed").foregroundStyle(.secondary))
+                            }
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(book.displayTitle).font(.headline).lineLimit(1)
+                                Text(String(format: L("%d chapters, %d words"), book.chapters.count, book.wordCount))
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
                         }
                     }
                 }

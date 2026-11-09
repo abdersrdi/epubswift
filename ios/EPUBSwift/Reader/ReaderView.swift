@@ -86,9 +86,18 @@ final class ReaderModel: ObservableObject {
     }
 
     #if DEBUG
-    /// Screenshot workflow only: finds a chapter with real paragraphs, highlights a few of them, and opens the sketch screen when asked.
+    /// Screenshot workflow only: finds a chapter with real paragraphs, highlights a few of them (unless that was already done on an
+    /// earlier launch), and opens the sketch screen when asked.
     func prepareScreenshot() async {
-        guard ScreenshotMode.showsHighlights, annotations.isEmpty else { return }
+        guard ScreenshotMode.showsHighlights else { return }
+        if annotations.isEmpty { await seedScreenshotHighlights() }
+        if ScreenshotMode.opensSketch {
+            try? await Task.sleep(nanoseconds: 2_500_000_000)             // let the page and its highlights finish drawing
+            beginSketch()
+        }
+    }
+
+    private func seedScreenshotHighlights() async {
         let finder = """
         (function(){
           var ps = [].slice.call(document.querySelectorAll('p')).filter(function(p){ return p.textContent.length > 120; }).slice(0, 3);
@@ -96,10 +105,12 @@ final class ReaderModel: ObservableObject {
           ps.forEach(function(p){
             var n = p.firstChild; while (n && n.nodeType !== 3) n = n.firstChild;
             if (!n) return;
-            var len = Math.min(n.data.length, 70);
+            var t = n.data, len = Math.min(t.length, 80);
+            var cut = t.substring(0, len).search(/[,;:.!?][^,;:.!?]*$/);        // end at the last punctuation inside the first 80 characters
+            if (cut > 30) len = cut + 1;
             var r = document.createRange(); r.setStart(document.body, 0); r.setEnd(n, 0);
             var s = r.toString().length;
-            out.push({start: s, end: s + len, text: n.data.substring(0, len)});
+            out.push({start: s, end: s + len, text: t.substring(0, len)});
           });
           return JSON.stringify(out);
         })()
@@ -118,10 +129,6 @@ final class ReaderModel: ObservableObject {
                     AnnotationStore.shared.add(a, to: book.id)
                 }
                 loadAnnotations()
-                if ScreenshotMode.opensSketch {
-                    try? await Task.sleep(nanoseconds: 1_500_000_000)
-                    beginSketch()
-                }
                 return
             }
             next()                                                       // this chapter has no running text; try the next one

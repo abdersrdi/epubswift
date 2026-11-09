@@ -5,3 +5,4 @@ DerivedData/
 *.ipa
 xcuserdata/
 store/appstore-screenshots/
+screenshots-out/
