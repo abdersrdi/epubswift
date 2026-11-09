@@ -9,7 +9,11 @@ if not os.path.isdir(RAW + "/screenshots") and os.path.isdir(RAW + "/iphone"):
 else:
     SHOTS = RAW + "/screenshots"
 OUT = sys.argv[2]            # output folder
-FONT = r"C:\Windows\Fonts\segoeuib.ttf"
+# The first bold font that exists: Windows (the original), then the GitHub macOS runner, then common Linux locations.
+FONT = next((f for f in [r"C:\Windows\Fonts\segoeuib.ttf", "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+                         "/Library/Fonts/Arial Bold.ttf", "/System/Library/Fonts/Helvetica.ttc",
+                         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"] if os.path.exists(f)), None)
+if FONT is None: sys.exit("No bold font found")
 TOP, BOTTOM = (79, 70, 229), (139, 63, 234)
 ORDER = [("highlight", "Highlight and add notes to any book"),
          ("sketch", "Draw on your pages with Apple Pencil"),
