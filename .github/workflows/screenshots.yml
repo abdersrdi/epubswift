@@ -4,6 +4,9 @@ name: Screenshots and screen recording
 # sample notes (no ads, nothing from the App Store build), takes a screenshot of each screen and records one continuous video of
 # the tour. Download the results from the run's Artifacts.
 on:
+  # Also runs on every push to the screenshots branch, so it works before this file is on the main branch.
+  push:
+    branches: [screenshots-workflow]
   workflow_dispatch:
     inputs:
       branch_note:
