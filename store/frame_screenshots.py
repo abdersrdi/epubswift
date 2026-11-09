@@ -17,7 +17,7 @@ if FONT is None: sys.exit("No bold font found")
 TOP, BOTTOM = (79, 70, 229), (139, 63, 234)
 ORDER = [("highlight", "Highlight and add notes to any book"),
          ("sketch", "Draw on your pages with Apple Pencil"),
-         ("bookeditor", "Write your own book, even on a phone"),
+         ("bookeditor", "Write your own book, anywhere"),
          ("export", "Export as EPUB, PDF, TXT or Word"),
          ("notes", "All your notes in one place"),
          ("reader", "A clean, comfortable reader"),
