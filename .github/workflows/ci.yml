@@ -17,6 +17,13 @@ jobs:
           brew install xcodegen
           cd ios
           xcodegen generate
+      - name: Tests (logic and the page script in a real web view)
+        run: |
+          cd ios
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for k,v in sorted(d.items(), reverse=True) if 'iOS' in k for x in v if 'iPhone' in x['name']))")
+          echo "Simulator: $UDID"
+          xcodebuild test -project EPUBSwift.xcodeproj -scheme EPUBSwiftTests             -destination "id=$UDID" CODE_SIGNING_ALLOWED=NO | tail -60
+          exit ${PIPESTATUS[0]}
       - name: Build (Debug, simulator)
         run: |
           cd ios

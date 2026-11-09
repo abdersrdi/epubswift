@@ -36,7 +36,26 @@ targets:
       configs:
         Release:
           ADMOB_APP_ID: ca-app-pub-2683853184901962~3033922016
+  # Logic and page-script tests. The files under test are compiled straight into the test bundle, so no app has to launch.
+  EPUBSwiftTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: EPUBSwiftTests
+      - path: EPUBSwift/Core/Annotations.swift
+      - path: EPUBSwift/Reader/AnnotationScripts.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cc.epubswift.tests
+        GENERATE_INFOPLIST_FILE: YES
 schemes:
+  EPUBSwiftTests:
+    build:
+      targets:
+        EPUBSwiftTests: all
+    test:
+      targets:
+        - EPUBSwiftTests
   EPUBSwift:
     build:
       targets:

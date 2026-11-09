@@ -126,6 +126,18 @@ struct BookWebView: UIViewRepresentable {
     var onLink: (String, String?) -> Void
     var onNext: () -> Void
     var onPrev: () -> Void
+    /// This chapter's highlights, and a counter that changes whenever they do.
+    var annotations: [Annotation] = []
+    var annotationVersion = 0
+    var clearToken = 0
+    /// A highlight to scroll to once the page is showing.
+    var focusAnnotation: UUID?
+    var onFocused: () -> Void = {}
+    var onSelection: (TextSelection?) -> Void = { _ in }
+    var onTapAnnotation: (UUID) -> Void = { _ in }
+
+    /// The page script lives in its own world, apart from the book's own (switched off) scripts.
+    static let world = WKContentWorld.world(name: "mw")
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
@@ -141,6 +153,10 @@ struct BookWebView: UIViewRepresentable {
         web.allowsLinkPreview = false
         web.isOpaque = false
         web.scrollView.contentInsetAdjustmentBehavior = .never
+        config.userContentController.addUserScript(WKUserScript(source: AnnotationScripts.source, injectionTime: .atDocumentEnd,
+                                                                forMainFrameOnly: true, in: Self.world))
+        config.userContentController.add(context.coordinator, contentWorld: Self.world, name: AnnotationScripts.handlerName)
+        context.coordinator.web = web
         return web
     }
 
@@ -149,6 +165,7 @@ struct BookWebView: UIViewRepresentable {
         c.parent = self
         web.backgroundColor = background
         web.scrollView.backgroundColor = background
+        c.refreshAnnotations()
         let key = "\(path)#\(fragment ?? "")|\(reloadToken)"
         guard c.loadedKey != key else { return }
         c.loadedKey = key
@@ -157,11 +174,14 @@ struct BookWebView: UIViewRepresentable {
         if let url = BookSchemeHandler.url(path: path, fragment: fragment) { web.load(URLRequest(url: url)) }
     }
 
-    final class Coordinator: NSObject, WKNavigationDelegate, UIScrollViewDelegate {
+    final class Coordinator: NSObject, WKNavigationDelegate, UIScrollViewDelegate, WKScriptMessageHandler {
         var parent: BookWebView
+        weak var web: WKWebView?
         var loadedKey = ""
         var restore = 0.0
         var ready = false
+        var appliedVersion = -1
+        var appliedClear = 0
 
         init(_ parent: BookWebView) { self.parent = parent }
 
@@ -176,6 +196,42 @@ struct BookWebView: UIViewRepresentable {
                 }
                 self.ready = true
                 self.report(sv)
+                self.appliedVersion = -1
+                self.refreshAnnotations()
+            }
+        }
+
+        /// Shows this chapter's highlights in the page and scrolls to the one asked for.
+        func refreshAnnotations() {
+            guard ready, let web else { return }
+            if appliedVersion != parent.annotationVersion {
+                appliedVersion = parent.annotationVersion
+                web.evaluateJavaScript(AnnotationScripts.apply(parent.annotations), in: nil, in: BookWebView.world) { _ in }
+            }
+            if appliedClear != parent.clearToken {
+                appliedClear = parent.clearToken
+                web.evaluateJavaScript("window.__mw && window.__mw.clearSelection()", in: nil, in: BookWebView.world) { _ in }
+            }
+            if let id = parent.focusAnnotation {
+                web.evaluateJavaScript("window.__mw && window.__mw.scrollTo('\(id.uuidString)')", in: nil, in: BookWebView.world) { _ in }
+                DispatchQueue.main.async { [weak self] in self?.parent.onFocused() }
+            }
+        }
+
+        func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
+            guard let text = message.body as? String, let data = text.data(using: .utf8),
+                  let object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+                  let type = object["type"] as? String else { return }
+            switch type {
+            case "selection":
+                if object["empty"] as? Bool == true { parent.onSelection(nil); return }
+                guard let start = object["start"] as? Int, let end = object["end"] as? Int, end > start,
+                      let quote = object["text"] as? String else { return }
+                parent.onSelection(TextSelection(start: start, end: end, text: quote))
+            case "tap":
+                if let id = (object["id"] as? String).flatMap(UUID.init(uuidString:)) { parent.onTapAnnotation(id) }
+            default:
+                break
             }
         }
 

@@ -10,6 +10,15 @@ final class ReaderModel: ObservableObject {
     @Published var pendingFragment: String?
     @Published var reloadToken = 0
     @Published var searchChapters: [TextChapter]?
+    @Published var annotations: [Annotation] = []
+    /// Changes whenever this chapter's highlights do, so the page redraws them.
+    @Published var annotationVersion = 0
+    @Published var selection: TextSelection?
+    @Published var focusAnnotation: UUID?
+    @Published var editing: Annotation?
+    @Published var draft: Annotation?
+    /// Changes when the page should drop its text selection.
+    @Published var clearToken = 0
     let handler = BookSchemeHandler()
     var restoreFraction = 0.0
 
@@ -71,6 +80,53 @@ final class ReaderModel: ObservableObject {
         LibraryStore.shared.updateProgress(id: book.id, chapter: index, fraction: fraction, overall: overall)
     }
 
+    // MARK: Highlights and notes
+
+    func loadAnnotations() {
+        annotations = AnnotationStore.shared.annotations(for: book.id)
+        annotationVersion += 1
+    }
+
+    var chapterAnnotations: [Annotation] { annotations.filter { $0.chapterPath == currentPath } }
+
+    /// A highlight for the current selection. With `withNote` the note editor opens first and nothing is saved until Save.
+    func highlightSelection(color: HighlightColor, withNote: Bool = false) {
+        guard let sel = selection, !currentPath.isEmpty else { return }
+        let a = Annotation(chapterIndex: index, chapterPath: currentPath, start: sel.start, end: sel.end,
+                           quote: sel.text.trimmingCharacters(in: .whitespacesAndNewlines), color: color)
+        selection = nil
+        if withNote {
+            draft = a
+        } else {
+            AnnotationStore.shared.add(a, to: book.id)
+            loadAnnotations()
+        }
+        clearToken += 1
+    }
+
+    func save(_ a: Annotation) {
+        if annotations.contains(where: { $0.id == a.id }) { AnnotationStore.shared.update(a, in: book.id) }
+        else { AnnotationStore.shared.add(a, to: book.id) }
+        loadAnnotations()
+    }
+
+    func deleteAnnotation(_ id: UUID) {
+        AnnotationStore.shared.delete(id: id, from: book.id)
+        loadAnnotations()
+    }
+
+    /// Opens the page of a highlight and scrolls to it.
+    func show(_ a: Annotation) {
+        focusAnnotation = a.id
+        if index != a.chapterIndex { go(to: a.chapterIndex) } else { annotationVersion += 1 }
+    }
+
+    func chapterTitle(at i: Int) -> String {
+        guard paths.indices.contains(i) else { return String(format: L("Chapter %d"), i + 1) }
+        if let t = package?.toc.first(where: { $0.path == paths[i] })?.title { return t }
+        return String(format: L("Chapter %d"), i + 1)
+    }
+
     func prepareSearch() async {
         guard searchChapters == nil, let pkg = package else { return }
         let chapters = await Task.detached(priority: .utility) { EpubText.chapters(pkg) }.value
@@ -100,6 +156,7 @@ struct ReaderView: View {
     @State private var showToc = false
     @State private var showSettings = false
     @State private var showSearch = false
+    @State private var showNotes = false
 
     init(book: BookRecord) {
         _model = StateObject(wrappedValue: ReaderModel(book: book))
@@ -136,7 +193,15 @@ struct ReaderView: View {
                         onProgress: { model.fraction = $0 },
                         onLink: { path, fragment in model.open(path: path, fragment: fragment) },
                         onNext: { model.next() },
-                        onPrev: { model.previous() })
+                        onPrev: { model.previous() },
+                        annotations: model.chapterAnnotations,
+                        annotationVersion: model.annotationVersion,
+                        clearToken: model.clearToken,
+                        focusAnnotation: model.focusAnnotation,
+                        onFocused: { model.focusAnnotation = nil },
+                        onSelection: { model.selection = $0 },
+                        onTapAnnotation: { id in model.editing = model.annotations.first { $0.id == id } })
+                    if model.selection != nil { selectionBar(theme) }
                     footer(theme)
                 }
                 BannerBar()
@@ -145,6 +210,7 @@ struct ReaderView: View {
         .preferredColorScheme(theme.isDark ? .dark : .light)
         .task {
             await model.load(style: style)
+            model.loadAnnotations()
             LibraryStore.shared.markOpened(id: model.book.id)
         }
         .onChange(of: style) { _, newStyle in
@@ -161,6 +227,15 @@ struct ReaderView: View {
         }
         .sheet(isPresented: $showToc) { TocSheet(model: model, isPresented: $showToc) }
         .sheet(isPresented: $showSearch) { SearchSheet(model: model, isPresented: $showSearch) }
+        .sheet(isPresented: $showNotes) { NotesSheet(model: model, isPresented: $showNotes) }
+        .sheet(item: $model.draft) { draft in
+            NoteEditor(annotation: draft, isNew: true, onSave: { model.save($0) }, onDelete: nil)
+                .presentationDetents([.medium, .large])
+        }
+        .sheet(item: $model.editing) { existing in
+            NoteEditor(annotation: existing, isNew: false, onSave: { model.save($0) }, onDelete: { model.deleteAnnotation(existing.id) })
+                .presentationDetents([.medium, .large])
+        }
         .sheet(isPresented: $showSettings) {
             ReaderSettingsSheet(fontSize: $fontSize, themeRaw: $themeRaw, serif: $serif,
                                 lineHeight: $lineHeight, margin: $margin)
@@ -177,6 +252,8 @@ struct ReaderView: View {
                 .frame(maxWidth: .infinity)
             Button { showSearch = true } label: { Image(systemName: "magnifyingglass") }
                 .accessibilityLabel(L("Search"))
+            Button { showNotes = true } label: { Image(systemName: "highlighter") }
+                .accessibilityLabel(L("Notes"))
             Button { showToc = true } label: { Image(systemName: "list.bullet") }
                 .accessibilityLabel(L("Contents"))
             Button { showSettings = true } label: { Image(systemName: "textformat.size") }
@@ -186,6 +263,28 @@ struct ReaderView: View {
         .foregroundStyle(Color(hex: theme.text))
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
+    }
+
+    /// Shown while text is selected: pick a colour to highlight it, or add a note.
+    private func selectionBar(_ theme: ReaderTheme) -> some View {
+        HStack(spacing: 16) {
+            ForEach(HighlightColor.allCases) { color in
+                Button { model.highlightSelection(color: color) } label: {
+                    Circle().fill(color.swatch).frame(width: 30, height: 30)
+                        .overlay(Circle().stroke(Color(hex: theme.text).opacity(0.25), lineWidth: 1))
+                }
+                .accessibilityLabel(String(format: L("Highlight %@"), color.title))
+            }
+            Spacer(minLength: 8)
+            Button { model.highlightSelection(color: .yellow, withNote: true) } label: {
+                Label(L("Note"), systemImage: "square.and.pencil").font(.subheadline.weight(.semibold))
+            }
+        }
+        .foregroundStyle(Color(hex: theme.text))
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+        .background(Color(hex: theme.background).opacity(0.98))
+        .overlay(alignment: .top) { Divider() }
     }
 
     private func footer(_ theme: ReaderTheme) -> some View {

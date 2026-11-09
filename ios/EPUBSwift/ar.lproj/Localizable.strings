@@ -188,3 +188,17 @@
 "Monthly and yearly plans renew automatically unless cancelled at least 24 hours before the end of the current period. Payment is charged to your Apple ID account at confirmation of purchase. Manage or cancel in your Apple ID account settings. The lifetime unlock is a one-time purchase." = "تتجدد الخطط الشهرية والسنوية تلقائيًا ما لم تُلغَ قبل 24 ساعة على الأقل من نهاية الفترة الحالية. يُخصم المبلغ من حساب Apple ID عند تأكيد الشراء. يمكنك الإدارة أو الإلغاء من إعدادات حساب Apple ID. الفتح مدى الحياة عملية شراء لمرة واحدة.";
 "There is not enough free storage to finish, or the file could not be saved." = "لا توجد مساحة كافية أو تعذر حفظ الملف.";
 "Complex layouts (tables, sidebars, footnotes) are flattened into reading order." = "تُسطَّح التخطيطات المعقدة (الجداول والأشرطة الجانبية والحواشي) بحسب ترتيب القراءة.";
+"Notes" = "الملاحظات";
+"Note" = "ملاحظة";
+"New note" = "ملاحظة جديدة";
+"Your note" = "ملاحظتك";
+"Colour" = "اللون";
+"Delete highlight" = "حذف التظليل";
+"Notes and highlights" = "الملاحظات والتظليلات";
+"No highlights yet. Select text in the book to highlight it or to add a note." = "لا توجد تظليلات بعد. حدّد نصًا في الكتاب لتظليله أو لإضافة ملاحظة.";
+"Highlight %@" = "تظليل باللون %@";
+"yellow" = "الأصفر";
+"green" = "الأخضر";
+"blue" = "الأزرق";
+"pink" = "الوردي";
+"Save" = "حفظ";
