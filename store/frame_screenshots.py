@@ -2,18 +2,25 @@
 import os, sys
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-RAW = sys.argv[1]            # folder containing iphone/ and ipad/
+RAW = sys.argv[1]            # folder containing iphone/ and ipad/ (or a screenshots/ folder with them)
+if not os.path.isdir(RAW + "/screenshots") and os.path.isdir(RAW + "/iphone"):
+    RAW = RAW + "/.."         # the layout downloaded from the GitHub workflow: <folder>/iphone and <folder>/ipad
+    SHOTS = sys.argv[1]
+else:
+    SHOTS = RAW + "/screenshots"
 OUT = sys.argv[2]            # output folder
 FONT = r"C:\Windows\Fonts\segoeuib.ttf"
 TOP, BOTTOM = (79, 70, 229), (139, 63, 234)
-ORDER = [("library", "Your books, always free"),
+ORDER = [("highlight", "Highlight and add notes to any book"),
+         ("sketch", "Draw on your pages with Apple Pencil"),
+         ("bookeditor", "Write your own book, even on a phone"),
+         ("export", "Export as EPUB, PDF, TXT or Word"),
+         ("notes", "All your notes in one place"),
          ("reader", "A clean, comfortable reader"),
          ("readerNight", "Night mode for late reading"),
-         ("tools", "10 powerful EPUB tools"),
-         ("pdf", "EPUB to PDF in one tap"),
-         ("meta", "Edit title, author and cover"),
-         ("validate", "Check and repair your books"),
-         ("paywall", "Unlock the tools, remove ads")]
+         ("library", "Your books, always free"),
+         ("tools", "Convert, edit and repair books"),
+         ("paywall", "Go Premium: every tool, no ads")]
 
 def banner_score(path):
     """Mean brightness of the band where the system notification banner appears (high = banner present)."""
@@ -65,8 +72,8 @@ def make(src, out, W, H, sw, sy, fs, caption):
 for d in ("iphone", "ipad", "foldable-2007x2853", "foldable-1398x2034"):
     os.makedirs(f"{OUT}/{d}", exist_ok=True)
 for i, (name, cap) in enumerate(ORDER, 1):
-    make(pick(RAW + "/screenshots/iphone", name), f"{OUT}/iphone/{i:02d}-{name}.png", 1320, 2868, 1100, 500, 112, cap)
-    ipad = pick(RAW + "/screenshots/ipad", name)
+    make(pick(SHOTS + "/iphone", name), f"{OUT}/iphone/{i:02d}-{name}.png", 1320, 2868, 1100, 500, 112, cap)
+    ipad = pick(SHOTS + "/ipad", name)
     make(ipad, f"{OUT}/ipad/{i:02d}-{name}.png", 2064, 2752, 1650, 430, 128, cap)
     # Foldable iPhone (unfolded, tablet-like): built from the iPad captures.
     make(ipad, f"{OUT}/foldable-2007x2853/{i:02d}-{name}.png", 2007, 2853, 1560, 470, 124, cap)
