@@ -46,6 +46,7 @@ targets:
       - path: EPUBSwift/Reader/AnnotationScripts.swift
       - path: EPUBSwift/Core/BookModel.swift
       - path: EPUBSwift/Core/BookExporters.swift
+      - path: EPUBSwift/Core/BookStore.swift
       - path: EPUBSwift/Core/EpubBuilder.swift
       - path: EPUBSwift/Core/Zip.swift
       - path: EPUBSwift/Core/Xml.swift

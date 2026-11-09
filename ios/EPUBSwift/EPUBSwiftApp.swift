@@ -36,6 +36,9 @@ struct RootView: View {
                     LibraryView()
                         .tabItem { Label(L("Library"), systemImage: "books.vertical") }
                         .tag(0)
+                    BookMakerView()
+                        .tabItem { Label(L("Create"), systemImage: "square.and.pencil") }
+                        .tag(3)
                     ToolsView()
                         .tabItem { Label(L("Tools"), systemImage: "wrench.and.screwdriver") }
                         .tag(1)

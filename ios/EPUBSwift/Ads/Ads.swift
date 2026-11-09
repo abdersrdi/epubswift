@@ -11,19 +11,23 @@ enum AdUnits {
     private static let testBanner = "ca-app-pub-3940256099942544/2435281174"
     private static let testInterstitial = "ca-app-pub-3940256099942544/4411468910"
     private static let testNative = "ca-app-pub-3940256099942544/3986624511"
+    private static let testRewarded = "ca-app-pub-3940256099942544/1712485313"
 
     private static let prodBanner = "ca-app-pub-2683853184901962/6678275675"
     private static let prodInterstitial = "ca-app-pub-2683853184901962/6009685125"
     private static let prodNative = "ca-app-pub-2683853184901962/4187843708"
+    private static let prodRewarded = "ca-app-pub-2683853184901962/9191219957"
 
     #if DEBUG
     static let banner = testBanner
     static let interstitial = testInterstitial
     static let native = testNative
+    static let rewarded = testRewarded
     #else
     static let banner = prodBanner
     static let interstitial = prodInterstitial
     static let native = prodNative
+    static let rewarded = prodRewarded
     #endif
 }
 
@@ -67,7 +71,10 @@ final class AdManager: NSObject, FullScreenContentDelegate {
         started = true
         let begin = {
             MobileAds.shared.start(completionHandler: nil)
-            Task { @MainActor in self.preloadInterstitial() }
+            Task { @MainActor in
+                self.preloadInterstitial()
+                RewardedAds.shared.preload()
+            }
         }
         if ATTrackingManager.trackingAuthorizationStatus == .notDetermined {
             ATTrackingManager.requestTrackingAuthorization { _ in DispatchQueue.main.async { begin() } }
@@ -106,6 +113,72 @@ final class AdManager: NSObject, FullScreenContentDelegate {
 
     nonisolated func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
         Task { @MainActor in self.preloadInterstitial() }
+    }
+}
+
+/// The rewarded video used by the Book Maker: one video removes the "Made with EPUBSwift" note from one export, and three
+/// videos earn one more export. It never plays unless the person taps the button.
+@MainActor
+final class RewardedAds: NSObject, ObservableObject, FullScreenContentDelegate {
+    static let shared = RewardedAds()
+
+    @Published private(set) var isReady = false
+    private var ad: RewardedAd?
+    private var loading = false
+    private var earned = false
+    private var finish: ((Bool) -> Void)?
+
+    /// True where this build can show videos at all.
+    var isAvailable: Bool { !Premium.shared.isPremium }
+
+    func preload() {
+        guard isAvailable, ad == nil, !loading else { return }
+        loading = true
+        Task {
+            do {
+                let loaded = try await RewardedAd.load(with: AdUnits.rewarded, request: Request())
+                loaded.fullScreenContentDelegate = self
+                self.ad = loaded
+                self.isReady = true
+            } catch {
+                self.ad = nil
+                self.isReady = false
+            }
+            self.loading = false
+        }
+    }
+
+    /// Plays a video. The completion gets true only if it was watched to the end and the reward was earned.
+    func show(_ completion: @escaping (Bool) -> Void) {
+        guard let ad, let vc = UIApplication.topViewController() else {
+            preload()
+            completion(false)
+            return
+        }
+        earned = false
+        finish = completion
+        self.ad = nil
+        isReady = false
+        ad.present(from: vc) { [weak self] in self?.earned = true }
+    }
+
+    nonisolated func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+        Task { @MainActor in
+            let done = self.finish, got = self.earned
+            self.finish = nil
+            self.earned = false
+            done?(got)
+            self.preload()
+        }
+    }
+
+    nonisolated func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
+        Task { @MainActor in
+            let done = self.finish
+            self.finish = nil
+            done?(false)
+            self.preload()
+        }
     }
 }
 
@@ -264,6 +337,16 @@ final class AdManager {
     func start() {}
     func preloadInterstitial() {}
     func afterReader() {}
+}
+
+/// Without the ads package there are no videos.
+@MainActor
+final class RewardedAds: ObservableObject {
+    static let shared = RewardedAds()
+    @Published private(set) var isReady = false
+    var isAvailable: Bool { false }
+    func preload() {}
+    func show(_ completion: @escaping (Bool) -> Void) { completion(false) }
 }
 
 struct BannerAdView: View {
